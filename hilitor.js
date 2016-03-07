@@ -37,12 +37,11 @@
   function Hilitor(options) {
     options = options || {};
 
-    var COLORS = ["#ff6", "#a0ffff", "#9f9", "#f99", "#f6f"];
 
     var hiliteTag = options.tag || "EM";
+    var hClass = options.hClass || "hilitor";
     var skipTags = new RegExp("^(?:SCRIPT|FORM|INPUT|TEXTAREA|IFRAME|VIDEO|AUDIO)$");
-    var colors = options.colors || COLORS;
-    var wordColor = [];
+    var wordN = [];
     var colorIdx = 0;
     var matchRegex = "";
     var openLeft = true;
@@ -110,7 +109,7 @@
         return;
       if (skipTags.test(node.nodeName))
         return;
-      if (node.nodeName === hiliteTag && node.className === "hilitor")
+      if (node.nodeName === hiliteTag && node.classList.contains(hClass))
         return;
 
       if (node.hasChildNodes()) {
@@ -121,16 +120,12 @@
       if (node.nodeType === 3) { // NODE_TEXT
         if ((nv = node.nodeValue) && (regs = matchRegex.exec(nv))) {
           if (false !== options.onDoOne.call(this, node)) {
-            if (!wordColor[regs[0].toLowerCase()]) {
-              wordColor[regs[0].toLowerCase()] = colors[colorIdx++ % colors.length];
-            }
-
+             if(!wordN[regs[0].toLowerCase()]) {
+            	 wordN[regs[0].toLowerCase()] = ++colorIdx % 12;
+                }
             var match = document.createElement(hiliteTag);
             match.appendChild(document.createTextNode(regs[0]));
-            match.className = "hilitor";
-            match.style.backgroundColor = wordColor[regs[0].toLowerCase()];
-            match.style.fontStyle = "inherit";
-            match.style.color = "#000";
+            match.className = hClass + " " + (wordN[regs[0].toLowerCase()]);
 
             var after = node.splitText(regs.index);
             after.nodeValue = after.nodeValue.substring(regs[0].length);
@@ -144,7 +139,7 @@
     this.remove = function() {
       var arr, i;
       do {
-        arr = document.querySelectorAll(hiliteTag + ".hilitor");
+        arr = document.querySelectorAll(hiliteTag + "." + hClass);
         i = 0;
         while (i < arr.length && (el = arr[i])) {
           // store the reference to the parent of the hilite tag as that node itself, 
@@ -172,7 +167,7 @@
     };
 
     // start highlighting at target node
-    this.apply = function(elements,input) {
+    this.apply = function(input, elements = [document.body]) {
       // always remove all highlight markers which have been done previously
       if (!input) {
         return false;
